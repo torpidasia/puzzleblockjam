@@ -166,10 +166,10 @@
     </ul>
     <h3>Design choices in this prototype</h3>
     <ul>
-      <li><b>The board is shaped like the picture you're building.</b> Cells outside the shape are dark wall tiles; gates sit on the shape's outline.</li>
+      <li><b>The board is shaped like the picture you're building.</b> Cells outside the shape are dark wall tiles; gates sit on the shape's outline. The car level is a car seen from above: tyres, headlights, windscreen, rear window and tail lights are part of the frame, and the grid inside is plain floor.</li>
       <li><b>The blueprint is a line drawing on normal floor.</b> Any block can slide over it or park on it. Only the matching piece locks there.</li>
       <li><b>Placed pieces become part of the floor.</b> Other blocks slide over them, so placing pieces never traps anything.</li>
-      <li><b>You win when the picture is complete.</b> Leftover blocks clear first, then the picture lights up and comes to life (the rocket launches, the car drives off).</li>
+      <li><b>You win when the picture is complete.</b> Leftover blocks clear first, then the picture lights up and comes to life (the rocket launches, the car drives off the top of the board).</li>
       <li><b>Picture pieces never leave through gates.</b> Gates are only for blocks.</li>
       <li><b>Pieces are cut along the grid</b> (2×2 and 1×2 tiles), so they always fill the blueprint exactly.</li>
       <li><b>Shuffle mixes up block colors</b> (arrow blocks keep theirs), and only into colors whose gate the block fits.</li>
@@ -197,12 +197,12 @@ var LEVELS = [
     axis:{J:'h',N:'v'},
     gates:[['top',0,4,6,'red'],['left',1,5,8,'yellow'],['right',8,5,8,'green'],['left',0,8,11,'orange'],['right',9,8,11,'blue'],['bottom',11,1,4,'purple'],['bottom',11,6,9,'cyan']],
     pieces:{'1':{name:'Nose',target:[4,3]},'2':{name:'Window',target:[4,5]},'3':{name:'Engine',target:[4,7]},'4':{name:'Left fin',target:[3,6]},'5':{name:'Right fin',target:[6,6]}} },
-  { num:18, name:'Car', pic:'car', shape:'mask', time:300, origin:[2,2],
-    map:['  11.EJJ  ','  11.EBB  ',' .AA..BF. ','DKAA...F44','D.......44','HH......CC','.22GGII33C',' 22L  .33 '],
-    colors:{A:'green',B:'yellow',C:'red',D:'blue',E:'purple',F:'yellow',G:'orange',H:'red',I:'yellow',J:'green',K:'blue',L:'purple'},
-    axis:{I:'h',K:'v'},
-    gates:[['top',0,2,5,'purple'],['top',0,5,8,'red'],['left',0,3,7,'yellow'],['right',9,3,7,'green'],['bottom',7,1,4,'blue'],['bottom',7,6,9,'orange']],
-    pieces:{'1':{name:'Cabin',target:[4,2]},'2':{name:'Rear',target:[2,4]},'3':{name:'Middle',target:[4,4]},'4':{name:'Front',target:[6,4]}} }
+  { num:18, name:'Car', pic:'cartop', shape:'cartop', time:300, origin:[2,3], gateT:0.75,
+    map:['  .K..  ',' AA1111 ','2AA1111E','2C....IE','CC....IE','.L....JJ','DD....FF','.D....G4','BB....G4','B555533.',' 555533 ','  ..HH  '],
+    colors:{A:'green',B:'yellow',C:'orange',D:'purple',E:'red',F:'green',G:'orange',H:'blue',I:'purple',J:'yellow',K:'red',L:'blue'},
+    axis:{J:'h',K:'v'},
+    gates:[['top',0,3,5,'red'],['bottom',11,3,5,'purple'],['left',0,4,6,'yellow'],['left',0,6,8,'blue'],['right',7,4,6,'green'],['right',7,6,8,'orange']],
+    pieces:{'1':{name:'Front',target:[2,3]},'2':{name:'Left door',target:[2,5]},'3':{name:'Roof',target:[3,5]},'4':{name:'Right door',target:[5,5]},'5':{name:'Rear',target:[2,7]}} }
 ];
 
 /* ---------------- pictures (drawn in cell units; line=true draws the blueprint) ---------------- */
@@ -255,28 +255,46 @@ function drawRocket(g, line) { // 4 x 6 cells
   g.fillStyle = flg; g.fill(); flamePath(0.62); g.fillStyle = '#fff4a8'; g.fill();
 }
 function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
-function drawCar(g, line) { // 6 x 4 cells, drawn in a 120 x 80 space
-  g.save(); g.scale(1 / 20, 1 / 20); g.lineJoin = 'round'; g.lineCap = 'round';
-  function cabin() { g.beginPath(); g.moveTo(46, 40); g.lineTo(46, 18); g.quadraticCurveTo(46, 10, 54, 10); g.lineTo(70, 10); g.quadraticCurveTo(78, 10, 78, 18); g.lineTo(78, 40); g.closePath(); }
+function drawCarTop(g, line) { // 4 x 6 cells, seen from above, front at the top
+  g.lineJoin = 'round'; g.lineCap = 'round';
+  function body() { g.beginPath(); g.roundRect(0.3, 0.1, 3.4, 5.8, [1.05, 1.05, 0.8, 0.8]); }
+  function wheels(fn) { [[0.02, 0.85], [3.62, 0.85], [0.02, 4.1], [3.62, 4.1]].forEach(function (w) { g.beginPath(); g.roundRect(w[0], w[1], 0.36, 1.05, 0.14); fn(); }); }
+  function shield() { g.beginPath(); g.moveTo(0.6, 1.98); g.quadraticCurveTo(2, 1.74, 3.4, 1.98); g.lineTo(3.05, 2.62); g.lineTo(0.95, 2.62); g.closePath(); }
+  function roof() { g.beginPath(); g.roundRect(0.95, 2.62, 2.1, 1.3, 0.14); }
+  function sun() { g.beginPath(); g.roundRect(1.3, 2.86, 1.4, 0.8, 0.12); }
+  function rearWin() { g.beginPath(); g.moveTo(0.95, 3.92); g.lineTo(3.05, 3.92); g.lineTo(3.3, 4.5); g.quadraticCurveTo(2, 4.68, 0.7, 4.5); g.closePath(); }
+  function mirrors(fn) { [0.17, 3.83].forEach(function (x) { g.beginPath(); g.ellipse(x, 2.14, 0.19, 0.11, 0, 0, 7); fn(); }); }
+  function heads(fn) { [[0.98, 0.42, -0.28], [3.02, 0.42, 0.28]].forEach(function (h) { g.beginPath(); g.ellipse(h[0], h[1], 0.36, 0.14, h[2], 0, 7); fn(); }); }
+  function tails(fn) { [[0.55, 5.56], [2.85, 5.56]].forEach(function (t) { g.beginPath(); g.roundRect(t[0], t[1], 0.6, 0.18, 0.07); fn(); }); }
+  function creases() { g.beginPath(); g.moveTo(1.25, 0.66); g.quadraticCurveTo(1.08, 1.3, 1.2, 1.86); g.moveTo(2.75, 0.66); g.quadraticCurveTo(2.92, 1.3, 2.8, 1.86); g.moveTo(1.25, 4.7); g.lineTo(1.25, 5.4); g.moveTo(2.75, 4.7); g.lineTo(2.75, 5.4); }
+  function seams() { g.beginPath(); g.moveTo(0.3, 3.15); g.lineTo(0.64, 3.15); g.moveTo(3.36, 3.15); g.lineTo(3.7, 3.15); g.moveTo(0.62, 2.2); g.lineTo(0.62, 3.95); g.moveTo(3.38, 2.2); g.lineTo(3.38, 3.95); }
   if (line) {
-    g.strokeStyle = 'rgba(255,255,255,.92)'; g.lineWidth = 0.9;
-    cabin(); g.stroke(); rr(g, 50, 15, 11, 17, 2.5); g.stroke(); rr(g, 65, 15, 9, 17, 2.5); g.stroke();
-    rr(g, 4, 40, 112, 26, 9); g.stroke(); g.beginPath(); g.moveTo(10, 59); g.lineTo(110, 59); g.stroke();
-    [23, 97].forEach(function (x) { g.beginPath(); g.arc(x, 67, 11, 0, 7); g.stroke(); g.beginPath(); g.arc(x, 67, 4.5, 0, 7); g.stroke(); });
-    g.beginPath(); g.arc(111, 48, 3.5, 0, 7); g.stroke(); g.beginPath(); g.ellipse(52, 51, 4.5, 2.2, 0, 0, 7); g.stroke(); g.beginPath(); g.ellipse(68, 51, 4.5, 2.2, 0, 0, 7); g.stroke();
-    g.restore(); return;
+    g.strokeStyle = 'rgba(255,255,255,.92)'; g.lineWidth = 0.045; var st = function () { g.stroke(); };
+    wheels(st); body(); g.stroke(); shield(); g.stroke(); roof(); g.stroke(); sun(); g.stroke(); rearWin(); g.stroke();
+    mirrors(st); heads(st); tails(st); creases(); g.stroke(); seams(); g.stroke();
+    return;
   }
-  cabin(); g.fillStyle = '#f7a58c'; g.fill(); g.lineWidth = 1.4; g.strokeStyle = 'rgba(80,30,20,.35)'; g.stroke();
-  rr(g, 50, 15, 11, 17, 2.5); g.fillStyle = '#8ff0ff'; g.fill(); rr(g, 65, 15, 9, 17, 2.5); g.fill();
-  g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(53, 25); g.lineTo(57, 19); g.moveTo(67, 25); g.lineTo(71, 19); g.stroke();
-  rr(g, 4, 40, 112, 26, 9); g.fillStyle = '#ee2e2f'; g.fill(); g.lineWidth = 1.2; g.strokeStyle = 'rgba(80,10,10,.35)'; g.stroke();
-  rr(g, 10, 59, 100, 6, 3); g.fillStyle = '#c41f22'; g.fill(); rr(g, 10, 43, 100, 3, 1.5); g.fillStyle = 'rgba(255,255,255,.4)'; g.fill();
-  rr(g, 4, 45, 5, 8, 2); g.fillStyle = '#fe5d08'; g.fill(); g.beginPath(); g.arc(111, 48, 3.5, 0, 7); g.fillStyle = '#F9BF23'; g.fill();
-  g.fillStyle = '#1d1d26'; g.beginPath(); g.ellipse(52, 51, 4.5, 2.2, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(68, 51, 4.5, 2.2, 0, 0, 7); g.fill();
-  [23, 97].forEach(function (x) { g.beginPath(); g.arc(x, 67, 11, 0, 7); g.fillStyle = '#3b3d4a'; g.fill(); g.beginPath(); g.arc(x, 67, 4.5, 0, 7); g.fillStyle = '#c9ccd8'; g.fill(); });
-  g.restore();
+  wheels(function () { g.fillStyle = '#20222c'; g.fill(); g.fillStyle = 'rgba(255,255,255,.12)'; g.fill(); });
+  wheels(function () { g.fillStyle = '#20222c'; g.fill(); });
+  body(); var bg = g.createLinearGradient(0.3, 0, 3.7, 0); bg.addColorStop(0, '#b3161e'); bg.addColorStop(0.5, '#ff5252'); bg.addColorStop(1, '#b3161e');
+  g.fillStyle = bg; g.fill(); g.lineWidth = 0.045; g.strokeStyle = 'rgba(70,8,12,.6)'; g.stroke();
+  g.save(); body(); g.clip(); g.fillStyle = 'rgba(40,15,25,.38)'; g.fillRect(0, 0.1, 4, 0.17); g.fillRect(0, 5.73, 4, 0.17);
+  g.fillStyle = 'rgba(255,255,255,.16)'; g.fillRect(1.82, 0.3, 0.36, 1.5); g.fillRect(1.82, 4.75, 0.36, 0.85); g.restore();
+  g.strokeStyle = 'rgba(110,8,14,.5)'; g.lineWidth = 0.05; creases(); g.stroke(); seams(); g.stroke();
+  heads(function () { g.fillStyle = '#fff4b8'; g.fill(); g.lineWidth = 0.035; g.strokeStyle = '#a77a00'; g.stroke(); });
+  tails(function () { g.fillStyle = '#ff2b2b'; g.fill(); g.lineWidth = 0.035; g.strokeStyle = '#5e0a0a'; g.stroke(); });
+  mirrors(function () { g.fillStyle = '#d42a30'; g.fill(); g.lineWidth = 0.035; g.strokeStyle = 'rgba(70,8,12,.7)'; g.stroke(); });
+  var gl = g.createLinearGradient(0, 1.8, 0, 2.62); gl.addColorStop(0, '#c4f0ff'); gl.addColorStop(1, '#3a8fe6');
+  shield(); g.fillStyle = gl; g.fill(); g.lineWidth = 0.04; g.strokeStyle = '#123d7a'; g.stroke();
+  roof(); g.fillStyle = '#e8383e'; g.fill(); g.strokeStyle = 'rgba(70,8,12,.55)'; g.stroke();
+  var sg = g.createLinearGradient(1.3, 2.86, 2.7, 3.66); sg.addColorStop(0, '#3f78c8'); sg.addColorStop(1, '#14295a');
+  sun(); g.fillStyle = sg; g.fill(); g.strokeStyle = '#0d2148'; g.stroke();
+  var rg = g.createLinearGradient(0, 3.92, 0, 4.66); rg.addColorStop(0, '#3a8fe6'); rg.addColorStop(1, '#a8e4ff');
+  rearWin(); g.fillStyle = rg; g.fill(); g.strokeStyle = '#123d7a'; g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 0.06;
+  g.beginPath(); g.moveTo(1.0, 2.5); g.lineTo(1.35, 2.0); g.moveTo(1.5, 2.5); g.lineTo(1.7, 2.2); g.moveTo(1.5, 3.55); g.lineTo(1.9, 3.0); g.stroke();
 }
-var PICS = { rocket:{ w:4, h:6, draw:drawRocket }, car:{ w:6, h:4, draw:drawCar } };
+var PICS = { rocket:{ w:4, h:6, draw:drawRocket }, cartop:{ w:4, h:6, draw:drawCarTop } };
 
 /* ---------------- helpers ---------------- */
 function shade(hex, amt) {
@@ -357,7 +375,7 @@ var timeLeft = 0, started = false, paused = false, state = 'play', frozenUntil =
 var coins = 780, counts = { hammer:1, vacuum:1, shuffle:1 };
 var fx = [], texts = [], tutorial = true, lastSec = -1;
 var winPhase = null, phaseT = 0, clearEnd = 0, winToken = 0;
-var ANIM = { rocket:{ dur:2.3, sound:'launch' }, car:{ dur:1.7, sound:'drive' } };
+var ANIM = { rocket:{ dur:2.3, sound:'launch' }, cartop:{ dur:1.9, sound:'drive' } };
 
 /* ---------------- level setup ---------------- */
 function loadLevel(i) {
@@ -398,12 +416,24 @@ function rocketHW(y) {
   return 4.55;
 }
 function buildSilhouette() {
-  var pts, path, cx = W / 2;
+  var pts, path, cx = W / 2, y;
   if (L.shape === 'rocket') {
-    pts = []; var y;
+    pts = [];
     for (y = -1.1; y <= 12.45 + 1e-6; y += 0.05) pts.push([cx + rocketHW(y), y]);
     pts.push([cx + 0.55, 12.45], [cx + 0.55, 11.62], [cx - 0.55, 11.62], [cx - 0.55, 12.45]);
     for (y = 12.45; y >= -1.1 - 1e-6; y -= 0.05) pts.push([cx - rocketHW(y), y]);
+    path = polyPath(pts);
+  } else if (L.shape === 'cartop') {
+    // car seen from above: rounded nose and tail, slight fender bulges over the four tyres
+    var X0 = -0.65, X1 = W + 0.65, Y0 = -2.0, Y1 = H + 1.75, RF = 2.4, RR = 1.8;
+    var fender = function (yy) { return 0.16 * (Math.exp(-Math.pow((yy - 2.2) / 1.1, 2)) + Math.exp(-Math.pow((yy - (H - 2.2)) / 1.1, 2))); };
+    pts = []; var n = 18, k, a;
+    for (k = 0; k <= n; k++) { a = -Math.PI / 2 + Math.PI / 2 * k / n; pts.push([X1 - RF + RF * Math.cos(a), Y0 + RF + RF * Math.sin(a)]); }
+    for (y = Y0 + RF + 0.1; y < Y1 - RR; y += 0.1) pts.push([X1 + fender(y), y]);
+    for (k = 0; k <= n; k++) { a = Math.PI / 2 * k / n; pts.push([X1 - RR + RR * Math.cos(a), Y1 - RR + RR * Math.sin(a)]); }
+    for (k = 0; k <= n; k++) { a = Math.PI / 2 + Math.PI / 2 * k / n; pts.push([X0 + RR + RR * Math.cos(a), Y1 - RR + RR * Math.sin(a)]); }
+    for (y = Y1 - RR - 0.1; y > Y0 + RF; y -= 0.1) pts.push([X0 - fender(y), y]);
+    for (k = 0; k <= n; k++) { a = Math.PI + Math.PI / 2 * k / n; pts.push([X0 + RF + RF * Math.cos(a), Y0 + RF + RF * Math.sin(a)]); }
     path = polyPath(pts);
   } else {
     var cells = [];
@@ -412,6 +442,7 @@ function buildSilhouette() {
   }
   var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
   sil = { pts:pts, path:path, x0:Math.min.apply(null, xs), x1:Math.max.apply(null, xs), y0:Math.min.apply(null, ys), y1:Math.max.apply(null, ys) };
+  if (L.shape === 'cartop') { sil.x0 -= 0.85; sil.x1 += 0.85; } // room for the tyres
 }
 
 /* ---------------- layout & prerendering ---------------- */
@@ -437,6 +468,7 @@ function buildBoardLayer() {
   boardLayer = document.createElement('canvas'); boardLayer.width = canvas.width; boardLayer.height = canvas.height;
   var g = boardLayer.getContext('2d'); g.scale(dpr, dpr);
   g.save(); g.translate(ox, oy); g.scale(cs, cs);
+  if (L.shape === 'cartop') drawTyres(g);
   // glow + base
   g.save(); g.shadowColor = 'rgba(90,200,255,.9)'; g.shadowBlur = cs * 0.9; g.fillStyle = '#142a6c'; g.fill(sil.path); g.restore();
   g.fillStyle = '#142a6c'; g.fill(sil.path);
@@ -444,7 +476,8 @@ function buildBoardLayer() {
   // wall tiles (inside the shape, outside the play area)
   for (var y = Math.floor(sil.y0) - 1; y <= Math.ceil(sil.y1); y++) for (var x = Math.floor(sil.x0) - 1; x <= Math.ceil(sil.x1); x++) {
     var playable = y >= 0 && x >= 0 && y < H && x < W && mask[y][x];
-    if (playable) continue;
+    if (playable || !inPoly(sil.pts, x + 0.5, y + 0.5)) continue;
+    if (L.shape === 'cartop' && (x < 0 || y < 0 || x >= W || y >= H)) continue;
     g.beginPath(); g.roundRect(x + 0.06, y + 0.06, 0.88, 0.88, 0.12); g.fillStyle = '#2a3f7e'; g.fill();
     g.beginPath(); g.roundRect(x + 0.06, y + 0.06, 0.88, 0.2, 0.1); g.fillStyle = 'rgba(255,255,255,.07)'; g.fill();
   }
@@ -467,13 +500,56 @@ function buildBoardLayer() {
   g.shadowColor = '#6fd6ff'; g.shadowBlur = cs * 0.35; g.lineWidth = 0.11; g.strokeStyle = '#8fe2ff'; g.stroke(sil.path);
   g.shadowBlur = 0; g.lineWidth = 0.035; g.strokeStyle = '#e6f8ff'; g.stroke(sil.path);
   g.restore();
+  if (L.shape === 'cartop') drawCarBodyDetails(g);
   // blueprint line drawing
   g.save(); g.translate(origin[0], origin[1]); g.shadowColor = 'rgba(180,235,255,.9)'; g.shadowBlur = cs * 0.12; pic.draw(g, true); g.restore();
   g.restore();
   gates.forEach(function (gt) { drawGate(g, gt, false); });
 }
+function drawTyres(g) {
+  var tys = [[-1.62, 1.0], [W + 0.67, 1.0], [-1.62, H - 3.4], [W + 0.67, H - 3.4]], tw = 0.95;
+  tys.forEach(function (t) {
+    g.save(); g.shadowColor = 'rgba(0,8,40,.6)'; g.shadowBlur = cs * 0.3; g.shadowOffsetY = cs * 0.06;
+    g.beginPath(); g.roundRect(t[0], t[1], tw, 2.4, 0.32); g.fillStyle = '#141826'; g.fill(); g.restore();
+    var tg = g.createLinearGradient(t[0], 0, t[0] + tw, 0); tg.addColorStop(0, '#2c3349'); tg.addColorStop(0.5, '#4a5373'); tg.addColorStop(1, '#1d2233');
+    g.beginPath(); g.roundRect(t[0] + 0.06, t[1] + 0.08, tw - 0.12, 2.24, 0.28); g.fillStyle = tg; g.fill();
+    g.save(); g.beginPath(); g.roundRect(t[0] + 0.06, t[1] + 0.08, tw - 0.12, 2.24, 0.28); g.clip();
+    g.strokeStyle = 'rgba(10,12,22,.65)'; g.lineWidth = 0.07;
+    for (var yy = t[1] + 0.2; yy < t[1] + 2.3; yy += 0.24) { g.beginPath(); g.moveTo(t[0], yy); g.lineTo(t[0] + tw, yy + 0.1); g.stroke(); }
+    g.restore();
+    g.beginPath(); g.roundRect(t[0] + 0.06, t[1] + 0.08, tw - 0.12, 2.24, 0.28); g.lineWidth = 0.04; g.strokeStyle = 'rgba(160,190,255,.35)'; g.stroke();
+  });
+}
+function drawCarBodyDetails(g) {
+  g.save(); g.clip(sil.path);
+  // front windscreen
+  var gl = g.createLinearGradient(0, -1.75, 0, -0.95); gl.addColorStop(0, '#c9f1ff'); gl.addColorStop(1, '#3b90e8');
+  g.beginPath(); g.moveTo(2.2, -1.72); g.lineTo(W - 2.2, -1.72); g.quadraticCurveTo(W - 1.5, -1.6, W - 1.45, -0.95); g.lineTo(1.45, -0.95); g.quadraticCurveTo(1.5, -1.6, 2.2, -1.72); g.closePath();
+  g.fillStyle = gl; g.fill(); g.lineWidth = 0.06; g.strokeStyle = '#0f2c66'; g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 0.09;
+  g.beginPath(); g.moveTo(2.6, -1.05); g.lineTo(3.2, -1.62); g.moveTo(3.15, -1.05); g.lineTo(3.55, -1.45); g.stroke();
+  // headlights
+  [[0.25, -1.05, -0.6], [W - 0.25, -1.05, 0.6]].forEach(function (h) {
+    var hg = g.createRadialGradient(h[0], h[1], 0.05, h[0], h[1], 0.7); hg.addColorStop(0, '#fffbe0'); hg.addColorStop(0.6, '#ffd84a'); hg.addColorStop(1, '#f2a800');
+    g.save(); g.shadowColor = 'rgba(255,220,90,.9)'; g.shadowBlur = cs * 0.35;
+    g.beginPath(); g.ellipse(h[0], h[1], 0.66, 0.3, h[2], 0, 7); g.fillStyle = hg; g.fill(); g.restore();
+    g.lineWidth = 0.04; g.strokeStyle = '#9a6a00'; g.stroke();
+  });
+  // rear window
+  var rg = g.createLinearGradient(0, H + 0.82, 0, H + 1.4); rg.addColorStop(0, '#3b90e8'); rg.addColorStop(1, '#b6eaff');
+  g.beginPath(); g.roundRect(2.25, H + 0.84, W - 4.5, 0.55, 0.22); g.fillStyle = rg; g.fill(); g.lineWidth = 0.06; g.strokeStyle = '#0f2c66'; g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.65)'; g.lineWidth = 0.08; g.beginPath(); g.moveTo(2.7, H + 1.3); g.lineTo(3.05, H + 0.92); g.stroke();
+  // tail lights
+  [[0.35, H + 1.0, 0.5], [W - 0.35, H + 1.0, -0.5]].forEach(function (t) {
+    var tg = g.createRadialGradient(t[0], t[1], 0.05, t[0], t[1], 0.6); tg.addColorStop(0, '#ff9a9a'); tg.addColorStop(0.5, '#ff2e2e'); tg.addColorStop(1, '#a30d12');
+    g.save(); g.shadowColor = 'rgba(255,60,60,.8)'; g.shadowBlur = cs * 0.3;
+    g.beginPath(); g.ellipse(t[0], t[1], 0.58, 0.24, t[2], 0, 7); g.fillStyle = tg; g.fill(); g.restore();
+    g.lineWidth = 0.04; g.strokeStyle = '#5c0609'; g.stroke();
+  });
+  g.restore();
+}
 function gateRect(gt) {
-  var T = GATE_T, e = 0.07, o = 0.05, x, y, w, h;
+  var T = L.gateT || GATE_T, e = 0.07, o = 0.05, x, y, w, h;
   if (gt.side === 'left') { x = gt.line - T; y = gt.a + e; w = T + o; h = gt.b - gt.a - 2 * e; }
   if (gt.side === 'right') { x = gt.line + 1 - o; y = gt.a + e; w = T + o; h = gt.b - gt.a - 2 * e; }
   if (gt.side === 'top') { x = gt.a + e; y = gt.line - T; w = gt.b - gt.a - 2 * e; h = T + o; }
@@ -948,8 +1024,8 @@ function picMotion() {
     if (a < 0.5) { m.dx = Math.sin(a * 95) * cs * 0.035 * (a / 0.5); m.power = 0.25 + 0.5 * (a / 0.5); }
     else { var u = a - 0.5; m.dy = -(u * u * 5.5 + u * 0.6) * cs; m.power = 1; }
   } else {
-    if (a < 0.4) { m.dy = -Math.abs(Math.sin(a * 26)) * cs * 0.07; m.power = 0.4; }
-    else { var v = a - 0.4; m.dx = (v * v * 9 + v * 1.4) * cs; m.rot = -0.04 * Math.min(1, v * 4); m.power = 1; }
+    if (a < 0.45) { m.dx = Math.sin(a * 80) * cs * 0.03; m.power = 0.4; }
+    else { var v = a - 0.45; m.dy = -(v * v * 7 + v * 0.8) * cs; m.power = 1; }
   }
   return m;
 }
@@ -992,8 +1068,8 @@ function emitAnim(dt) {
         t:0, life:0.8 + Math.random() * 0.5, s:cs * (0.12 + Math.random() * 0.1), grow:cs * (0.4 + Math.random() * 0.4), c:Math.random() < 0.5 ? '#eef2fb' : '#c9d3e8', r:0 });
       if (Math.random() < 0.6) fx.push({ x:bx, y:by, vx:(Math.random() - 0.5) * cs * 2, vy:cs * (2 + Math.random() * 3), t:0, life:0.35, c:Math.random() < 0.5 ? '#ffd23f' : '#ff7a1a', s:cs * 0.08, r:Math.random() * 6 });
     } else {
-      var wx = b.x + 1.15 * cs + m.dx, wy = b.y + 3.85 * cs + m.dy;
-      fx.push({ smoke:true, x:wx, y:wy, vx:-cs * (1.5 + Math.random() * 2) * (m.power < 1 ? 0.3 : 1), vy:-cs * Math.random() * 0.6,
+      var wx = b.x + b.w / 2 + m.dx + (Math.random() < 0.5 ? -0.8 : 0.8) * cs, wy = b.y + b.h + m.dy - cs * 0.1;
+      fx.push({ smoke:true, x:wx, y:wy, vx:(Math.random() - 0.5) * cs * 1.5, vy:cs * (1 + Math.random() * 1.8) * (m.power < 1 ? 0.3 : 1),
         t:0, life:0.7 + Math.random() * 0.4, s:cs * (0.1 + Math.random() * 0.08), grow:cs * 0.55, c:Math.random() < 0.5 ? '#e7ecf7' : '#c2cbe0', r:0 });
     }
   }
